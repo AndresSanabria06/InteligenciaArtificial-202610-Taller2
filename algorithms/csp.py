@@ -7,6 +7,8 @@ if TYPE_CHECKING:
 
 
 def backtracking_search(csp: DroneAssignmentCSP) -> dict[str, str] | None:
+    
+    
     """
     Basic backtracking search without optimizations.
 
@@ -24,9 +26,23 @@ def backtracking_search(csp: DroneAssignmentCSP) -> dict[str, str] | None:
     You can find inspiration in the textbook's pseudocode:
     Artificial Intelligence: A Modern Approach (4th Edition) by Russell and Norvig, Chapter 5: Constraint Satisfaction Problems
     """
-    # TODO: Implement your code here
-    return None
-
+    return backtrack(csp,{})
+  
+def backtrack(csp, assignment)->DroneAssignmentCSP:
+  if csp.is_complete(assignment):
+      return assignment
+  var=csp.get_unassigned_variables(assignment)[0]
+  for value in csp.domains[var]: 
+    if csp.is_consistent(var, value, assignment):
+      csp.assign(var, value, assignment)
+      result= backtrack(csp,assignment)
+      if result is not None:
+        return result
+      csp.unassign(var, assignment)
+    
+    
+    
+  
 
 def backtracking_fc(csp: DroneAssignmentCSP) -> dict[str, str] | None:
     """
@@ -78,3 +94,11 @@ def backtracking_mrv_lcv(csp: DroneAssignmentCSP) -> dict[str, str] | None:
     """
     # TODO: Implement your code here (BONUS)
     return None
+  
+  #ABREVIATURAS PARA LAS FLAGS
+  
+bts=backtracking_search
+ac3=backtracking_ac3
+mrv=backtracking_mrv_lcv
+fc=backtracking_fc
+  
