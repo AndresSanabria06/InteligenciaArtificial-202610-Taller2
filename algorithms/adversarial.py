@@ -169,5 +169,54 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         - Do NOT prune in expectimax (unlike alpha-beta).
         - self.prob is set via the constructor argument prob.
         """
-        # TODO: Implement your code here
-        return None
+        def max_value(state, current_depth):
+            if state.is_win() or state.is_lose() or current_depth == self.depth:
+                return self.evaluation_function(state)
+
+            bestValue = float("-inf")
+            actions = state.get_legal_actions(0)
+            if not actions:
+                return self.evaluation_function(state)
+
+            for action in actions:
+                succ = state.generate_successor(0, action)
+                bestValue = max(bestValue, chance_value(succ, 1, current_depth))
+            return bestValue
+
+        def chance_value(state, agent_index, current_depth):
+            if state.is_win() or state.is_lose():
+                return self.evaluation_function(state)
+
+            actions = state.get_legal_actions(agent_index)
+            if not actions:
+                return self.evaluation_function(state)
+
+            next_agent = (agent_index + 1) % state.get_num_agents()
+            next_depth = current_depth + 1 if next_agent == 0 else current_depth
+
+            values = []
+            for action in actions:
+                succ = state.generate_successor(agent_index, action)
+                if next_agent == 0:
+                    values.append(max_value(succ, next_depth))
+                else:
+                    values.append(chance_value(succ, next_agent, next_depth))
+
+            p = self.prob
+            min_val = min(values)
+            mean_val = sum(values) / len(values)
+            return (1 - p) * min_val + p * mean_val
+
+        mejor_score = float("-inf")
+        best_action = None
+        legal = state.get_legal_actions(0)
+        for act in legal:
+            succ = state.generate_successor(0, act)
+            score = chance_value(succ, 1, 0)
+            if score > mejor_score:
+                mejor_score = score
+                best_action = act
+
+        return best_action
+
+            
