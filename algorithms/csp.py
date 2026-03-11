@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-
+from collections import deque
 if TYPE_CHECKING:
     from algorithms.problems_csp import DroneAssignmentCSP
 
@@ -61,24 +61,60 @@ def backtracking_fc(csp: DroneAssignmentCSP) -> dict[str, str] | None:
 
 
 def backtracking_ac3(csp: DroneAssignmentCSP) -> dict[str, str] | None:
-    """
-    Backtracking search with AC-3 arc consistency.
 
-    Tips:
-    - AC-3 enforces arc consistency: for every pair of constrained variables (Xi, Xj), every value
-      in Xi's domain must have at least one supporting value in Xj's domain.
-    - Run AC-3 before starting backtracking to reduce domains globally.
-    - After each assignment, run AC-3 on arcs involving the assigned variable's neighbors.
-    - If AC-3 empties any domain, the current assignment is inconsistent - backtrack.
-    - You can create helper functions such as:
-      - a values_compatible function to check if two variable-value pairs are consistent with the constraints.
-      - a revise function that removes unsupported values from one variable's domain.
-      - an ac3 function that manages the queue of arcs to check and calls revise.
-      - a backtrack function that integrates AC-3 into the search process.
-    """
-    # TODO: Implement your code here
-    return None
+    if not arc3(csp):
+        return None
+    return backtracking_search(csp)
+  
+def arc3(csp)->bool:
+    queue = deque()
+    for xi in csp.variables:
+        for xj in csp.get_neighbors(xi):
+            queue.append((xi, xj))
+    while queue:
+        xi, xj = queue.popleft()
+        if revise(xi, xj, csp):
+            if not csp.domains[xi]: 
+                return False
+            for xk in csp.get_neighbors(xi):
+                if xk != xj:
+                    queue.append((xk, xi))
+    return True
+  
+def revise(xi, xj, csp):
+    revised = False
+    for a in list(csp.domains[xi]):
+        supported = False
+        for b in csp.domains[xj]:
+            if pair_consistent(csp, xi, a, xj, b):
+                supported = True
+                break
+        if not supported:
+            csp.domains[xi].remove(a)
+            revised = True
 
+    return revised
+  
+def pair_consistent(csp, xi, a, xj, b):
+
+    if a != b:
+        return True
+    drone = csp.drones[a]
+    dpi = csp.var_to_delivery[xi]
+    dpj = csp.var_to_delivery[xj]
+    if dpi["weight"] + dpj["weight"] > drone["capacity"]:
+        return False
+    pos = drone["position"]
+    dist_i = csp._get_distance(pos, dpi["position"])
+    dist_j = csp._get_distance(pos, dpj["position"])
+
+    route = 2*dist_i + 2*dist_j
+
+    if route > drone["battery"]:
+        return False
+
+    return True 
+  
 
 def backtracking_mrv_lcv(csp: DroneAssignmentCSP) -> dict[str, str] | None:
     """
