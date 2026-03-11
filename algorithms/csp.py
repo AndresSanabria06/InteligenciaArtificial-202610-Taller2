@@ -41,10 +41,6 @@ def backtrack(csp, assignment)->DroneAssignmentCSP:
       csp.unassign(var, assignment)
   return None
     
-    
-    
-  
-
 def backtracking_fc(csp: DroneAssignmentCSP) -> dict[str, str] | None:
     """
     Backtracking search with Forward Checking.
@@ -57,7 +53,6 @@ def backtracking_fc(csp: DroneAssignmentCSP) -> dict[str, str] | None:
     - Use csp.is_consistent(neighbor, val, assignment) to check if a value is still consistent.
     - Forward checking reduces the search space by detecting failures earlier than basic backtracking.
     """
-    # TODO: Implement your code here
     return backtrack_fc(csp, {})
   
 def backtrack_fc(csp,assignment):
