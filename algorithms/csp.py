@@ -85,6 +85,21 @@ def backtrack_fc(csp,assignment):
 
 
 def backtracking_ac3(csp: DroneAssignmentCSP) -> dict[str, str] | None:
+    """
+    Backtracking search with AC-3 arc consistency.
+
+    Tips:
+    - AC-3 enforces arc consistency: for every pair of constrained variables (Xi, Xj), every value
+      in Xi's domain must have at least one supporting value in Xj's domain.
+    - Run AC-3 before starting backtracking to reduce domains globally.
+    - After each assignment, run AC-3 on arcs involving the assigned variable's neighbors.
+    - If AC-3 empties any domain, the current assignment is inconsistent - backtrack.
+    - You can create helper functions such as:
+      - a values_compatible function to check if two variable-value pairs are consistent with the constraints.
+      - a revise function that removes unsupported values from one variable's domain.
+      - an ac3 function that manages the queue of arcs to check and calls revise.
+      - a backtrack function that integrates AC-3 into the search process.
+    """
 
     if not arc3(csp):
         return None
