@@ -39,6 +39,7 @@ def backtrack(csp, assignment)->DroneAssignmentCSP:
       if result is not None:
         return result
       csp.unassign(var, assignment)
+  return None
     
     
     
@@ -57,7 +58,35 @@ def backtracking_fc(csp: DroneAssignmentCSP) -> dict[str, str] | None:
     - Forward checking reduces the search space by detecting failures earlier than basic backtracking.
     """
     # TODO: Implement your code here
-    return None
+    return backtrack_fc(csp, {})
+  
+def backtrack_fc(csp,assignment):
+  if csp.is_complete(assignment):
+      return assignment
+  var=csp.get_unassigned_variables(assignment)[0]
+  for value in csp.domains[var]: 
+    if csp.is_consistent(var, value, assignment):
+      csp.assign(var, value, assignment)
+      dominios_guardados={}
+      for variable in csp.domains:
+        dominios_guardados[variable]=list(csp.domains[variable]) #Save domains before forward checking so you can restore them on backtrack
+      failure = False
+      for neighbor in csp.get_neighbors(var): #Use csp.get_neighbors(var) to get variables that share constraints with var.
+        if neighbor not in assignment:
+          nuevo_dominio = []
+          for val in csp.domains[neighbor]:
+            if csp.is_consistent(neighbor, val, assignment): #Use csp.is_consistent(neighbor, val, assignment) to check if a value is still consistent.
+              nuevo_dominio.append(val)
+          csp.domains[neighbor]=nuevo_dominio
+          if len(nuevo_dominio)==0:
+              failure = True
+      if failure is not True:
+        resultado = backtrack_fc(csp,assignment)
+        if resultado is not None:
+          return resultado
+      csp.domains = dominios_guardados
+      csp.unassign(var, assignment) 
+  return None
 
 
 def backtracking_ac3(csp: DroneAssignmentCSP) -> dict[str, str] | None:
