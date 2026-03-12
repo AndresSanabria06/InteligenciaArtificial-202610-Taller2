@@ -50,6 +50,8 @@ class DroneAssignmentCSP:
         self._var_to_index: dict[str, int] = {
             var: i for i, var in enumerate(self.variables)
         }
+        self.n_assignments=0
+        self.n_backtracks = 0
 
     def _precompute_distances(self) -> None:
         """

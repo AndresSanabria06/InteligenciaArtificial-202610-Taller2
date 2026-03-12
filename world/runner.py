@@ -140,6 +140,8 @@ def run_csp_mode(layout: "DroneLayout", display: CspDisplay, algorithm: str) -> 
 
     if result is not None:
         print("\n\u2705 Solution found!")
+        print(f"  Assignments: {csp.n_assignments}")
+        print(f"  Backtracks: {csp.n_backtracks}")
         print("-" * 60)
         _simulate_csp_solution(layout, display, result, csp, drones, delivery_points)
     else:

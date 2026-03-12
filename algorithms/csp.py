@@ -34,11 +34,13 @@ def backtrack(csp, assignment)->DroneAssignmentCSP:
   var=csp.get_unassigned_variables(assignment)[0]
   for value in csp.domains[var]: 
     if csp.is_consistent(var, value, assignment):
-      csp.assign(var, value, assignment)
-      result= backtrack(csp,assignment)
-      if result is not None:
-        return result
-      csp.unassign(var, assignment)
+        csp.n_assignments+=1
+        csp.assign(var, value, assignment)
+        result= backtrack(csp,assignment)
+        if result is not None:
+            return result
+        csp.n_backtracks += 1
+        csp.unassign(var, assignment)
   return None
     
 def backtracking_fc(csp: DroneAssignmentCSP) -> dict[str, str] | None:
@@ -61,6 +63,7 @@ def backtrack_fc(csp,assignment):
   var=csp.get_unassigned_variables(assignment)[0]
   for value in csp.domains[var]: 
     if csp.is_consistent(var, value, assignment):
+      csp.n_assignments+=1
       csp.assign(var, value, assignment)
       dominios_guardados={}
       for variable in csp.domains:
@@ -80,11 +83,12 @@ def backtrack_fc(csp,assignment):
         if resultado is not None:
           return resultado
       csp.domains = dominios_guardados
+      csp.n_backtracks+=1
       csp.unassign(var, assignment) 
   return None
 
 
-def backtracking_ac3(csp: DroneAssignmentCSP) -> dict[str, str] | None:
+def backtracking_ac3(csp: DroneAssignmentCSP):
     """
     Backtracking search with AC-3 arc consistency.
 
@@ -100,20 +104,55 @@ def backtracking_ac3(csp: DroneAssignmentCSP) -> dict[str, str] | None:
       - an ac3 function that manages the queue of arcs to check and calls revise.
       - a backtrack function that integrates AC-3 into the search process.
     """
-
     if not arc3(csp):
         return None
-    return backtracking_search(csp)
+
+    return backtrack_ac3(csp, {})
+
+def backtrack_ac3(csp, assignment):
+
+    if csp.is_complete(assignment):
+        return assignment
+
+    var = csp.get_unassigned_variables(assignment)[0]
+
+    for value in csp.domains[var]:
+
+        if csp.is_consistent(var, value, assignment):
+
+            csp.n_assignments += 1
+            csp.assign(var, value, assignment)
+
+            saved_domains = {v: list(csp.domains[v]) for v in csp.domains}
+
+            queue = deque()
+            for neighbor in csp.get_neighbors(var):
+                queue.append((neighbor, var))
+
+            if arc3(csp, queue):
+
+                result = backtrack_ac3(csp, assignment)
+
+                if result is not None:
+                    return result
+
+            csp.domains = saved_domains
+
+            csp.n_backtracks += 1
+            csp.unassign(var, assignment)
+
+    return None
   
-def arc3(csp)->bool:
-    queue = deque()
-    for xi in csp.variables:
-        for xj in csp.get_neighbors(xi):
-            queue.append((xi, xj))
+def arc3(csp, queue=None):
+    if queue is None:
+        queue = deque()
+        for xi in csp.variables:
+            for xj in csp.get_neighbors(xi):
+                queue.append((xi, xj))
     while queue:
         xi, xj = queue.popleft()
         if revise(xi, xj, csp):
-            if not csp.domains[xi]: 
+            if not csp.domains[xi]:
                 return False
             for xk in csp.get_neighbors(xi):
                 if xk != xj:
