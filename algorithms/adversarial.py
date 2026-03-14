@@ -136,8 +136,59 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         - Update beta at MIN nodes: beta = min(beta, value).
         - Pass alpha and beta through the recursive calls.
         """
-        # TODO: Implement your code here (BONUS)
-        return None
+        def max_value(state, current_depth, alpha, beta):
+            if state.is_win() or state.is_lose() or current_depth == self.depth:
+                return self.evaluation_function(state)
+
+            var = float("-inf")
+            acc = state.get_legal_actions(0)  # acc = acciones
+            if not acc:
+                return self.evaluation_function(state)
+
+            for act in acc:  # act = accion
+                successor = state.generate_successor(0, act)
+                var = max(var, min_value(successor, 1, current_depth, alpha, beta))
+                if var > beta:
+                    return var
+                alpha = max(alpha, var)
+            return var
+
+        def min_value(state, agent_index, current_depth, alpha, beta):
+            if state.is_win() or state.is_lose() or current_depth == self.depth:
+                return self.evaluation_function(state)
+
+            var = float("inf")
+            acc = state.get_legal_actions(agent_index)
+            if not acc:
+                return self.evaluation_function(state)
+
+            next_agent = (agent_index + 1) % state.get_num_agents()
+            next_depth = current_depth + 1 if next_agent == 0 else current_depth
+
+            for act in acc:  # act = accion
+                successor = state.generate_successor(agent_index, act)
+
+                if next_agent == 0:
+                    var = min(var, max_value(successor, next_depth, alpha, beta))
+                else:
+                    var = min(var, min_value(successor, next_agent, next_depth, alpha, beta))
+                if var < alpha:
+                    return var
+                beta = min(beta, var)
+            return var
+
+        mejor_score = float("-inf")
+        best_action = None
+
+        acc = state.get_legal_actions(0)
+        for act in acc: 
+            successor = state.generate_successor(0, act)
+            score = min_value(successor, 1, 0, float("-inf"), float("inf"))
+            if score > mejor_score:
+                mejor_score = score
+                best_action = act
+
+        return best_action
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
