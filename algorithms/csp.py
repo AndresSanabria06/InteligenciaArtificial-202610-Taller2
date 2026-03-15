@@ -206,10 +206,90 @@ def backtracking_mrv_lcv(csp: DroneAssignmentCSP) -> dict[str, str] | None:
       values that rule out the fewest choices for neighboring variables.
     - Use csp.get_num_conflicts(var, value, assignment) to count how many values would be ruled out for neighbors if var=value is assigned.
     """
-    # TODO: Implement your code here (BONUS)
+    return backtrack_mrv_lcv(csp, {})
+
+def backtrack_mrv_lcv(csp, assignment):
+    if csp.is_complete(assignment):
+        return assignment
+
+    var = seleccionar_variable_mrv(csp, assignment)
+
+    for value in ordenar_valores_lcv(var, csp, assignment):
+        if csp.is_consistent(var, value, assignment):
+            csp.n_assignments += 1
+            csp.assign(var, value, assignment)
+
+            dominios_salvados = {}
+
+            for v in csp.domains:
+             dominios_salvados[v] = list(csp.domains[v])
+            failure = False
+
+            for neighbor in csp.get_neighbors(var):
+                if neighbor not in assignment:
+                    nuevo_dominio = []
+                    for val in csp.domains[neighbor]:
+                        if csp.is_consistent(neighbor, val, assignment):
+                            nuevo_dominio.append(val)
+                    csp.domains[neighbor] = nuevo_dominio
+                    if len(nuevo_dominio) == 0:
+                        failure = True
+
+            if not failure:
+                result = backtrack_mrv_lcv(csp, assignment)
+                if result is not None:
+                    return result
+            
+            csp.domains = dominios_salvados
+            csp.n_backtracks += 1
+            csp.unassign(var, assignment)
+            
     return None
+
+def seleccionar_variable_mrv(csp, assignment):
+    no_asignado = csp.get_unassigned_variables(assignment)
+
+    variable_seleccionada = None
+
+    min_valores_posibles = float("inf")
+    max_vecinos_no_asignados = -1
+
+
+    for v in no_asignado:
+        valores_posibles = 0
+        for val in csp.domains[v]:
+            if csp.is_consistent(v, val, assignment):
+                valores_posibles += 1
+
+        vecinos_no_asignados = 0
+        for n in csp.get_neighbors(v):
+            if n not in assignment:
+                vecinos_no_asignados += 1
+
+        if (valores_posibles < min_valores_posibles) or (
+            valores_posibles == min_valores_posibles and vecinos_no_asignados > max_vecinos_no_asignados):
+            variable_seleccionada = v
+            min_valores_posibles = valores_posibles
+            max_vecinos_no_asignados = vecinos_no_asignados
+
+    return variable_seleccionada
+
+def ordenar_valores_lcv(var, csp, assignment):
+
+    values = list(csp.domains[var])
+
+    conflicts_list = [(csp.get_num_conflicts(var, val, assignment), val) for val in values]
+    conflicts_list.sort() 
+
+    ordered_values = []
+    for num_conflictos, valor in conflicts_list:
+        ordered_values.append(valor)
+
+    return ordered_values
+
+
   
-  #ABREVIATURAS PARA LAS FLAGS
+#ABREVIATURAS PARA LAS FLAGS
   
 bts=backtracking_search
 ac3=backtracking_ac3
