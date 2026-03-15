@@ -71,13 +71,13 @@ def backtrack_fc(csp,assignment):
       failure = False
       for neighbor in csp.get_neighbors(var): #Use csp.get_neighbors(var) to get variables that share constraints with var.
         if neighbor not in assignment:
-          nuevo_dominio = []
-          for val in csp.domains[neighbor]:
-            if csp.is_consistent(neighbor, val, assignment): #Use csp.is_consistent(neighbor, val, assignment) to check if a value is still consistent.
-              nuevo_dominio.append(val)
-          csp.domains[neighbor]=nuevo_dominio
-          if len(nuevo_dominio)==0:
-              failure = True
+            nuevo_dominio = []
+            for val in csp.domains[neighbor]:
+                if csp.is_consistent(neighbor, val, assignment): #Use csp.is_consistent(neighbor, val, assignment) to check if a value is still consistent.
+                    nuevo_dominio.append(val)
+            csp.domains[neighbor]=nuevo_dominio
+            if len(nuevo_dominio)==0:
+                failure = True
       if failure is not True:
         resultado = backtrack_fc(csp,assignment)
         if resultado is not None:
